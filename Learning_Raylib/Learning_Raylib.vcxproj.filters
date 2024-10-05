@@ -19,4 +19,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\Documents\Visual Studio 2022\My Exported Templates\Raylib_template.zip" />
+  </ItemGroup>
 </Project>

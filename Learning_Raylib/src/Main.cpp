@@ -21,7 +21,10 @@
 *
 ********************************************************************************************/
 
-#include "raylib.h"
+#include "raylib.h" 
+
+typedef short int16_t;              // -32,768 to 32,767
+typedef unsigned short u_int16_t;   // 0 to 65,535
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -29,17 +32,17 @@
 int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const u_int16_t WINDOW_WIDTH = 800;
+    const u_int16_t WINDOW_HEIGHT = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raylib [core] example - basic window");
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
+    while (!WindowShouldClose()) {
+
         // Update
         //----------------------------------------------------------------------------------
         // TODO: Update your variables here
