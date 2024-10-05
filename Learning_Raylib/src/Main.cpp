@@ -23,8 +23,8 @@
 
 #include "raylib.h" 
 
-typedef short int16_t;              // -32,768 to 32,767
-typedef unsigned short u_int16_t;   // 0 to 65,535
+typedef short int int16_t;              // -32,768 to 32,767
+typedef unsigned short int u_int16_t;   // 0 to 65,535
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -33,28 +33,41 @@ int main(void) {
     // Initialization
     //--------------------------------------------------------------------------------------
     const u_int16_t WINDOW_WIDTH = 800;
-    const u_int16_t WINDOW_HEIGHT = 450;
+    const u_int16_t WINDOW_HEIGHT = 800;
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raylib [core] example - basic window");
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
+	int16_t player_x{ 400 };
+	int16_t player_y{ 400 };
+	int16_t player_speed{ 5 };
+
     // Main game loop
     while (!WindowShouldClose()) {
 
         // Update
-        //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
-        //----------------------------------------------------------------------------------
+		//----------------------------------------------------------------------------------
+        if (IsKeyDown(KEY_W)) {
+            player_y -= player_speed;
+        }
+        if (IsKeyDown(KEY_S)) {
+            player_y += player_speed;
+        }
 
-        // Draw
+        if (IsKeyDown(KEY_A)) {
+            player_x -= player_speed;
+        }
+        if (IsKeyDown(KEY_D)) {
+            player_x += player_speed;
+        }
         //----------------------------------------------------------------------------------
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
 
-        DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+		DrawCircle(player_x, player_y, 10, RED);
 
         EndDrawing();
         //----------------------------------------------------------------------------------
