@@ -1,33 +1,50 @@
+#pragma once
+
 #include "raylib.h" 
 #include "Typedef.hpp"
 #include "Grid.hpp"
+#include <iostream>
 
 
 int main(void) {
+
 	Grid gameOfLife;
+
+#if DEBUG
     gameOfLife.printArrayGrid();
-    gameOfLife.nextStageGrid();
-    
-    // In case of window resize, the window size MUST be a multiple of 11
-    const uint16_t WINDOW_WIDTH = 770;
-    const uint16_t WINDOW_HEIGHT = 770;
-	const uint16_t TARGET_FPS = 60;
+#endif // DEBUG
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Game of Life");
     SetTargetFPS(TARGET_FPS);
 
-    
 
-    // Main game loop
+    // ===== Main game loop =====
     while (!WindowShouldClose()) {
 
-		// Event handling
+		// ===== Event handling =====
+ 
+        // Pause mode
+        if (IsKeyPressed(KEY_SPACE)) {
+            if (is_game_paused) {
+				is_game_paused = false;
+				std::cout << "Game paused\n";
+            }
+			else {
+			    is_game_paused = true;
+				std::cout << "Game resumed\n";
+            }
+        }
 
 
-		// Update
+		// ===== Update =====
+        if (!is_game_paused) {
+            gameOfLife.nextGenerationGrid();
+        }
+        else {
+            gameOfLife.userChangeCellState();
+        }
 
-
-		// Drawing
+		// ===== Drawing =====
         BeginDrawing();
         ClearBackground(BLACK);
 

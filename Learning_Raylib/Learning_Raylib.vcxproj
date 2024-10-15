@@ -141,13 +141,17 @@
   <ItemGroup>
     <ClCompile Include="src\Grid.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Documents\Visual Studio 2022\My Exported Templates\Raylib_template.zip" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Config.hpp" />
+    <ClInclude Include="src\Globals.hpp" />
     <ClInclude Include="src\Grid.hpp" />
     <ClInclude Include="src\Typedef.hpp" />
+    <ClInclude Include="src\Timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
