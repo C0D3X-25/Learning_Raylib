@@ -20,7 +20,7 @@ class Grid {
 		void printArrayGrid(void);
 	
 		// Calculate the next stage of all cells in the array.
-		void nextGenerationGrid(void);
+		void drawNextGenerationGrid(void);
 	
 
 	private:

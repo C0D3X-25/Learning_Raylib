@@ -33,13 +33,11 @@ void Grid::drawGrid(void) {
 void Grid::userChangeCellState(void) {
 
 	// Return the position of the cell the mouse is overing
-	int16_t mouse_pos_x{ static_cast<int16_t>(GetMouseX() / (m_CELL_WIDTH + m_SPACE_BETWEEN_CELLS)) };
-	int16_t mouse_pos_y{ static_cast<int16_t>(GetMouseY() / (m_CELL_HEIGHT + m_SPACE_BETWEEN_CELLS)) };
+	uint16_t mouse_pos_x{ static_cast<uint16_t>(GetMouseX() / (m_CELL_WIDTH + m_SPACE_BETWEEN_CELLS)) };
+	uint16_t mouse_pos_y{ static_cast<uint16_t>(GetMouseY() / (m_CELL_HEIGHT + m_SPACE_BETWEEN_CELLS)) };
 
 #if DEBUG
-	//char buffer[10];
-	//snprintf(buffer, "%d:%d", mouse_pos_x, mouse_pos_y);
-	DrawText("cell: " + mouse_pos_x + mouse_pos_y, 10, 10, 22, RED);
+	//std::cout << "Mouse X: " << mouse_pos_x << ", Mouse Y: " << mouse_pos_y << '\n';
 #endif // DEBUG
 
 	if (IsMouseButtonDown(0)) {
@@ -49,8 +47,6 @@ void Grid::userChangeCellState(void) {
 	if (IsMouseButtonDown(1)) {
 		m_grid_cells[mouse_pos_x][mouse_pos_y] = 0;
 	}
-
-	//std::cout << "Mouse X: " << mouse_pos_x << ", Mouse Y: " << mouse_pos_y << '\n';
 }
 
 
@@ -64,7 +60,7 @@ void Grid::printArrayGrid(void) {
 }
 
 
-void Grid::nextGenerationGrid(void) {
+void Grid::drawNextGenerationGrid(void) {
 
 	uint16_t count_cells_alive{ 0 };
 	uint16_t total_cells_alive{ 0 };
@@ -132,7 +128,7 @@ bool Grid::getNWCellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-		return m_grid_cells[current_cell_x - 1][current_cell_y + 1];
+	return m_grid_cells[current_cell_x - 1][current_cell_y - 1];
 }
 
 
@@ -145,8 +141,7 @@ bool Grid::getNCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-
-	return m_grid_cells[current_cell_x][current_cell_y + 1];
+	return m_grid_cells[current_cell_x][current_cell_y - 1];
 }
 
 
@@ -159,8 +154,7 @@ bool Grid::getNECellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-
-	return m_grid_cells[current_cell_x + 1][current_cell_y + 1];
+	return m_grid_cells[current_cell_x + 1][current_cell_y - 1];
 }
 
 
@@ -173,7 +167,6 @@ bool Grid::getWCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-
 	return m_grid_cells[current_cell_x - 1][current_cell_y];
 }
 
@@ -187,7 +180,6 @@ bool Grid::getECellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-
 	return m_grid_cells[current_cell_x + 1][current_cell_y];
 }
 
@@ -201,8 +193,7 @@ bool Grid::getSWCellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-
-	return m_grid_cells[current_cell_x - 1][current_cell_y - 1];
+	return m_grid_cells[current_cell_x - 1][current_cell_y + 1];
 }
 
 
@@ -215,8 +206,7 @@ bool Grid::getSCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-
-	return m_grid_cells[current_cell_x][current_cell_y - 1];
+	return m_grid_cells[current_cell_x][current_cell_y + 1];
 }
 
 
@@ -229,8 +219,7 @@ bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-
-	return m_grid_cells[current_cell_x + 1][current_cell_y - 1];
+	return m_grid_cells[current_cell_x + 1][current_cell_y + 1];
 }
 
 

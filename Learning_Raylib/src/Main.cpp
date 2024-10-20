@@ -38,9 +38,11 @@ int main(void) {
 
 		// ===== Update =====
         if (!is_game_paused) {
-            gameOfLife.nextGenerationGrid();
+            gameOfLife.drawNextGenerationGrid();
         }
         else {
+            //gameOfLife.printArrayGrid();
+
             gameOfLife.userChangeCellState();
         }
 
