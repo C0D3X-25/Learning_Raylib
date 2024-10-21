@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "Config.hpp"
 
+#include <algorithm>
 #include <iostream>
 
 
@@ -14,7 +15,7 @@ void Grid::drawGrid(void) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
 
 			// Cell is Dead
-			if (m_grid_cells[width][height] == 0) {
+			if (m_current_grid[width][height] == 0) {
 				DrawRectangle(pos_x, pos_y, m_CELL_WIDTH, m_CELL_HEIGHT, GRAY);
 			}
 
@@ -41,11 +42,11 @@ void Grid::userChangeCellState(void) {
 #endif // DEBUG
 
 	if (IsMouseButtonDown(0)) {
-		m_grid_cells[mouse_pos_x][mouse_pos_y] = 1;
+		m_current_grid[mouse_pos_x][mouse_pos_y] = 1;
 	}
 
 	if (IsMouseButtonDown(1)) {
-		m_grid_cells[mouse_pos_x][mouse_pos_y] = 0;
+		m_current_grid[mouse_pos_x][mouse_pos_y] = 0;
 	}
 }
 
@@ -53,7 +54,7 @@ void Grid::userChangeCellState(void) {
 void Grid::printArrayGrid(void) {
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
-			std::cout << m_grid_cells[width][height] << " ";
+			std::cout << m_current_grid[width][height] << " ";
 		}
 	}
 	std::cout << '\n';
@@ -88,9 +89,9 @@ void Grid::drawNextGenerationGrid(void) {
 			//  - Any live cell with fewer than two live neighbours dies, as if by underpopulation
 			//  - Any live cell with two or three live neighbours lives on to the next generation
 			//  - Any live cell with more than three live neighbours dies, as if by overpopulation
-			if (m_grid_cells[width][height] == 1) {
+			if (m_next_generation_grid[width][height] == 1) {
 				if (count_cells_alive < 2 || count_cells_alive > 3) {
-					m_grid_cells[width][height] = 0;
+					m_next_generation_grid[width][height] = 0;
 				}
 			}
 
@@ -98,7 +99,7 @@ void Grid::drawNextGenerationGrid(void) {
 			//	- Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
 			else {
 				if (count_cells_alive == 3) {
-					m_grid_cells[width][height] = 1;
+					m_next_generation_grid[width][height] = 1;
 				}
 			}
 
@@ -116,6 +117,8 @@ void Grid::drawNextGenerationGrid(void) {
 	if (total_cells_alive == 0) {
 		is_game_paused = true;
 	}
+
+	std::copy(&m_next_generation_grid[0][0], &m_next_generation_grid + TOTAL_CELLS, &m_current_grid);
 }
 
 
@@ -128,7 +131,7 @@ bool Grid::getNWCellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x - 1][current_cell_y - 1];
+	return m_current_grid[current_cell_x - 1][current_cell_y - 1];
 }
 
 
@@ -141,7 +144,7 @@ bool Grid::getNCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x][current_cell_y - 1];
+	return m_current_grid[current_cell_x][current_cell_y - 1];
 }
 
 
@@ -154,7 +157,7 @@ bool Grid::getNECellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x + 1][current_cell_y - 1];
+	return m_current_grid[current_cell_x + 1][current_cell_y - 1];
 }
 
 
@@ -167,7 +170,7 @@ bool Grid::getWCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x - 1][current_cell_y];
+	return m_current_grid[current_cell_x - 1][current_cell_y];
 }
 
 
@@ -180,7 +183,7 @@ bool Grid::getECellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x + 1][current_cell_y];
+	return m_current_grid[current_cell_x + 1][current_cell_y];
 }
 
 
@@ -193,7 +196,7 @@ bool Grid::getSWCellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x - 1][current_cell_y + 1];
+	return m_current_grid[current_cell_x - 1][current_cell_y + 1];
 }
 
 
@@ -206,7 +209,7 @@ bool Grid::getSCellState(const uint16_t current_cell_x, const uint16_t current_c
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x][current_cell_y + 1];
+	return m_current_grid[current_cell_x][current_cell_y + 1];
 }
 
 
@@ -219,7 +222,7 @@ bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_
 
 		return 0;
 	}
-	return m_grid_cells[current_cell_x + 1][current_cell_y + 1];
+	return m_current_grid[current_cell_x + 1][current_cell_y + 1];
 }
 
 

@@ -51,7 +51,9 @@ class Grid {
 		static const uint16_t m_GRID_HEIGHT{ WINDOW_HEIGHT/ (m_CELL_HEIGHT + m_SPACE_BETWEEN_CELLS) };
 	
 		// Grid holding cells (all dead by default)
-		bool m_grid_cells[m_GRID_WIDTH][m_GRID_HEIGHT]{ };
+		bool m_current_grid[m_GRID_WIDTH][m_GRID_HEIGHT]{ };
+		bool m_next_generation_grid[m_GRID_WIDTH][m_GRID_HEIGHT]{ };
+
 
 		// Timer between generations
 		Timer m_timer;
