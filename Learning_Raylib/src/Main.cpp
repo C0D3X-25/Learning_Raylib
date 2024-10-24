@@ -1,56 +1,50 @@
 #pragma once
-
-#include "raylib.h" 
 #include "Typedef.hpp"
+#include "Config.hpp"
+#include "raylib.h" 
 #include "Grid.hpp"
+#include "Timer.hpp"
+#include "UserInteraction.hpp"
+
 #include <iostream>
 
 
 int main(void) {
 
-	Grid gameOfLife;
+	Grid game_of_life;
+    game_of_life.generateRandomNewGrid();
 
 #if DEBUG
-    gameOfLife.printArrayGrid();
+    game_of_life.printArrayGrid();
 #endif // DEBUG
 
-    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Game of Life");
-    SetTargetFPS(TARGET_FPS);
+    InitWindow(gbl::WINDOW_WIDTH, gbl::WINDOW_HEIGHT, "Game of Life");
+    SetTargetFPS(gbl::TARGET_FPS);
 
 
     // ===== Main game loop =====
     while (!WindowShouldClose()) {
 
 		// ===== Event handling =====
- 
-        // Pause mode
-        if (IsKeyPressed(KEY_SPACE)) {
-            if (is_game_paused) {
-				is_game_paused = false;
-				std::cout << "Game paused\n";
-            }
-			else {
-			    is_game_paused = true;
-				std::cout << "Game resumed\n";
-            }
-        }
-
+        inter::getUserKeyPressed(game_of_life);
 
 		// ===== Update =====
-        if (!is_game_paused) {
-            gameOfLife.drawNextGenerationGrid();
+        if (!gbl::is_game_paused) {
+            if (isTimerDone(game_of_life.m_p_timer)) {
+                game_of_life.nextGeneration();
+                game_of_life.updateGrid();
+                startTimer(game_of_life.m_p_timer, gbl::TIME_BEFORE_NEXT_GENERATION);
+            }
         }
         else {
-            //gameOfLife.printArrayGrid();
-
-            gameOfLife.userChangeCellState();
+            game_of_life.userChangeCellState();
         }
 
 		// ===== Drawing =====
         BeginDrawing();
-        ClearBackground(BLACK);
 
-		gameOfLife.drawGrid();
+        ClearBackground(BLACK);
+		game_of_life.drawGrid();
 
         EndDrawing();
     }

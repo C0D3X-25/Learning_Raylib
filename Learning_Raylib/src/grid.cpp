@@ -1,9 +1,15 @@
 #include "Grid.hpp"
 #include "raylib.h"
 #include "Config.hpp"
+#include "Timer.hpp"
 
-#include <algorithm>
 #include <iostream>
+#include <random>
+
+
+Grid::Grid(void) {
+	m_p_timer = std::make_unique<Timer>();
+}
 
 
 void Grid::drawGrid(void) {
@@ -28,6 +34,32 @@ void Grid::drawGrid(void) {
 		pos_x += m_CELL_WIDTH + m_SPACE_BETWEEN_CELLS;
 		pos_y = m_SPACE_BETWEEN_CELLS;
 	}
+
+	updateTimer(m_p_timer);
+}
+
+
+void Grid::updateGrid(void) {
+
+	for (const ModifiedCell& cell : m_modified_cells) {
+		m_current_grid[cell.m_pos_x][cell.m_pos_y] = cell.m_state;
+	}
+}
+
+
+void Grid::clearGrid(void) {
+
+	if (!m_modified_cells.empty()) {
+		m_modified_cells.clear();
+	}
+
+	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
+		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
+			m_current_grid[width][height] = 0;
+		}
+	}
+
+	gbl::nbr_generation = 0;
 }
 
 
@@ -44,7 +76,6 @@ void Grid::userChangeCellState(void) {
 	if (IsMouseButtonDown(0)) {
 		m_current_grid[mouse_pos_x][mouse_pos_y] = 1;
 	}
-
 	if (IsMouseButtonDown(1)) {
 		m_current_grid[mouse_pos_x][mouse_pos_y] = 0;
 	}
@@ -52,6 +83,7 @@ void Grid::userChangeCellState(void) {
 
 
 void Grid::printArrayGrid(void) {
+
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
 			std::cout << m_current_grid[width][height] << " ";
@@ -61,7 +93,11 @@ void Grid::printArrayGrid(void) {
 }
 
 
-void Grid::drawNextGenerationGrid(void) {
+void Grid::nextGeneration(void) {
+
+	if (!m_modified_cells.empty()) {
+		m_modified_cells.clear();
+	}
 
 	uint16_t count_cells_alive{ 0 };
 	uint16_t total_cells_alive{ 0 };
@@ -69,7 +105,6 @@ void Grid::drawNextGenerationGrid(void) {
 #if DEBUG
 	uint16_t cell{ 0 };
 #endif // DEBUG
-
 
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
@@ -85,21 +120,23 @@ void Grid::drawNextGenerationGrid(void) {
 				+ getSCellState(width, height)
 				+ getSECellState(width, height);
 
-			// Rules for living cell
+			// ===== Rules for living cell =====
 			//  - Any live cell with fewer than two live neighbours dies, as if by underpopulation
 			//  - Any live cell with two or three live neighbours lives on to the next generation
 			//  - Any live cell with more than three live neighbours dies, as if by overpopulation
-			if (m_next_generation_grid[width][height] == 1) {
+			if (m_current_grid[width][height] == 1) {
+				// Cell is gonna die next generation
 				if (count_cells_alive < 2 || count_cells_alive > 3) {
-					m_next_generation_grid[width][height] = 0;
+					m_modified_cells.emplace_back(ModifiedCell(width, height, false));
 				}
 			}
 
-			// Rule for dead cell
+			// ===== Rule for dead cell =====
 			//	- Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
 			else {
+				// Cell is gonna live next generation
 				if (count_cells_alive == 3) {
-					m_next_generation_grid[width][height] = 1;
+					m_modified_cells.emplace_back(ModifiedCell(width, height, true));
 				}
 			}
 
@@ -113,12 +150,35 @@ void Grid::drawNextGenerationGrid(void) {
 		}
 	}
 
-	// Pause in case of a dead grid
-	if (total_cells_alive == 0) {
-		is_game_paused = true;
+	// Pause in case of a dead grid or grid with cells alive who are static
+	if (total_cells_alive == 0 || m_modified_cells.empty()) {
+		gbl::is_game_paused = true;
 	}
 
-	std::copy(&m_next_generation_grid[0][0], &m_next_generation_grid + TOTAL_CELLS, &m_current_grid);
+	gbl::nbr_generation++;
+}
+
+
+void Grid::generateRandomNewGrid(uint16_t seed) {
+
+	clearGrid();
+
+	const uint16_t MIN_ROLL{ 1 };
+	const uint16_t MAX_ROLL{ 100 };
+
+	// Initialize a random number generator
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> distrib(MIN_ROLL, MAX_ROLL);
+
+	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
+		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
+
+			if (distrib(gen) <= gbl::CHANCE_TO_GENERATE_LIVING_CELL) {
+				m_current_grid[width][height] = 1;
+			}
+		}
+	}
 }
 
 
@@ -224,5 +284,4 @@ bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_
 	}
 	return m_current_grid[current_cell_x + 1][current_cell_y + 1];
 }
-
 

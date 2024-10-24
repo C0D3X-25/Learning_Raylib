@@ -1,12 +1,12 @@
 #include "Timer.hpp"
 #include "raylib.h"
 
-void startTimer(Timer* timer, float lifetime) {
+void startTimer(std::unique_ptr<Timer>& timer, float lifetime) {
 	timer->lifetime = lifetime;
 }
 
 
-void updateTimer(Timer* timer) {
+void updateTimer(std::unique_ptr<Timer>& timer) {
 	// Substract frame time from timer lifetime
 	if (timer->lifetime > 0) {
 		timer->lifetime -= GetFrameTime();
@@ -14,7 +14,7 @@ void updateTimer(Timer* timer) {
 }
 
 
-bool isTimerDone(Timer* timer) {
+bool isTimerDone(std::unique_ptr<Timer>& timer) {
 
 	if (timer->lifetime <= 0) {
 		return true;
