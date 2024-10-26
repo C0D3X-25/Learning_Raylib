@@ -9,6 +9,8 @@
 
 Grid::Grid(void) {
 	m_p_timer = std::make_unique<Timer>();
+	m_modified_cells.reserve(100);
+	m_cells_to_check.reserve(100);
 }
 
 
@@ -93,32 +95,38 @@ void Grid::printArrayGrid(void) {
 }
 
 
-void Grid::nextGeneration(void) {
+void Grid::allGeneration(void) {
+
+	if (gbl::nbr_generation > 0) {
+		std::cout << "Next generation\n";
+		nextGeneration();
+	}
+	else {
+		std::cout << "First generation\n";
+		firstGeneration();
+	}
+
+	pauseWhenDeadGrid();
+	gbl::nbr_generation++;
+}
+
+
+void Grid::firstGeneration(void) {
 
 	if (!m_modified_cells.empty()) {
 		m_modified_cells.clear();
 	}
 
-	uint16_t count_cells_alive{ 0 };
-	uint16_t total_cells_alive{ 0 };
-
 #if DEBUG
-	uint16_t cell{ 0 };
+	uint16_t cell_count{ 0 };
 #endif // DEBUG
 
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
 
-			// Count alive neighbors cells for current cell
-			count_cells_alive = 
-				getNWCellState(width, height)
-				+ getNCellState(width, height)
-				+ getNECellState(width, height)
-				+ getWCellState(width, height)
-				+ getECellState(width, height)
-				+ getSWCellState(width, height)
-				+ getSCellState(width, height)
-				+ getSECellState(width, height);
+			uint16_t nbr_cells_alive{ 0 };
+
+			nbr_cells_alive = getNbrNeighborCellsAlive(width, height);
 
 			// ===== Rules for living cell =====
 			//  - Any live cell with fewer than two live neighbours dies, as if by underpopulation
@@ -126,7 +134,7 @@ void Grid::nextGeneration(void) {
 			//  - Any live cell with more than three live neighbours dies, as if by overpopulation
 			if (m_current_grid[width][height] == 1) {
 				// Cell is gonna die next generation
-				if (count_cells_alive < 2 || count_cells_alive > 3) {
+				if (nbr_cells_alive < 2 || nbr_cells_alive > 3) {
 					m_modified_cells.emplace_back(ModifiedCell(width, height, false));
 				}
 			}
@@ -135,27 +143,125 @@ void Grid::nextGeneration(void) {
 			//	- Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
 			else {
 				// Cell is gonna live next generation
-				if (count_cells_alive == 3) {
+				if (nbr_cells_alive == 3) {
 					m_modified_cells.emplace_back(ModifiedCell(width, height, true));
 				}
 			}
 
 #if DEBUG
-			std::cout << "cell: " << cell << " => " << count_cells_alive << '\n';
-			cell++;
+			std::cout << "cell:" << cell_count << " [" << width << " x " << height << "] => " << nbr_cells_alive << '\n';
+			cell_count++;
 #endif // DEBUG
 
-			total_cells_alive += count_cells_alive;
-			count_cells_alive = 0;
 		}
 	}
+}
 
-	// Pause in case of a dead grid or grid with cells alive who are static
-	if (total_cells_alive == 0 || m_modified_cells.empty()) {
-		gbl::is_game_paused = true;
+
+void Grid::nextGeneration(void) {
+
+	std::vector<ModifiedCell> temp_modified_cells;
+	temp_modified_cells.reserve(25);
+
+	uint16_t cell_count{ 0 };
+
+	for (const ModifiedCell& modified_cell : m_modified_cells) {
+
+
+		uint16_t nbr_cells_alive{ 0 };
+
+		// Count alive neighbors cells for current cell
+		nbr_cells_alive = getNbrNeighborCellsAlive(modified_cell.m_pos_x, modified_cell.m_pos_y);
+
+		// ===== Rules for living cell =====
+		//  - Any live cell with fewer than two live neighbours dies, as if by underpopulation
+		//  - Any live cell with two or three live neighbours lives on to the next generation
+		//  - Any live cell with more than three live neighbours dies, as if by overpopulation
+		if (m_current_grid[modified_cell.m_pos_x][modified_cell.m_pos_y] == 1) {
+			// Cell is gonna die next generation
+			if (nbr_cells_alive < 2 || nbr_cells_alive > 3) {
+				temp_modified_cells.emplace_back(ModifiedCell(modified_cell.m_pos_x, modified_cell.m_pos_y, false));
+			}
+		}
+
+		// ===== Rule for dead cell =====
+		//	- Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
+		else {
+			// Cell is gonna live next generation
+			if (nbr_cells_alive == 3) {
+				temp_modified_cells.emplace_back(ModifiedCell(modified_cell.m_pos_x, modified_cell.m_pos_y, true));
+			}
+		}
+
+#if DEBUG
+		std::cout << "cell:" << cell_count << " [" << modified_cell.m_pos_x << " x " << modified_cell.m_pos_y << "] => " << nbr_cells_alive << '\n';
+		cell_count++;
+#endif // DEBUG
+
 	}
 
-	gbl::nbr_generation++;
+	if (!m_modified_cells.empty()) {
+		m_modified_cells.clear();
+	}
+
+	m_modified_cells = std::move(temp_modified_cells);
+}
+
+void Grid::pauseWhenDeadGrid(void) {
+
+	if (m_modified_cells.empty()) {
+		gbl::game_paused = true;
+	}
+}
+
+uint16_t Grid::getNbrNeighborCellsAlive(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+	
+	return (uint16_t)getNWCellState(current_cell_x, current_cell_y)
+		+ getNCellState(current_cell_x, current_cell_y)
+		+ getNECellState(current_cell_x, current_cell_y)
+		+ getWCellState(current_cell_x, current_cell_y)
+		+ getECellState(current_cell_x, current_cell_y)
+		+ getSWCellState(current_cell_x, current_cell_y)
+		+ getSCellState(current_cell_x, current_cell_y)
+		+ getSECellState(current_cell_x, current_cell_y);
+}
+
+
+void Grid::addNeighborOfChangingCells(ModifiedCell& modified_cell) {
+	
+	if (modified_cell.m_pos_x == 0
+		|| modified_cell.m_pos_y == 0
+		|| modified_cell.m_pos_x == m_GRID_WIDTH - 1
+		|| modified_cell.m_pos_y == m_GRID_HEIGHT - 1
+		|| modified_cell.m_verified == true) {
+
+		return;
+	}
+
+	modified_cell.m_verified = true;
+
+	m_cells_to_check.emplace_back(ModifiedCell(
+		modified_cell.m_pos_x - 1, modified_cell.m_pos_y - 1,
+		m_current_grid[modified_cell.m_pos_x - 1][modified_cell.m_pos_y - 1], true));
+			
+	m_cells_to_check.emplace_back(ModifiedCell(
+		modified_cell.m_pos_x - 1, modified_cell.m_pos_y - 1,
+		m_current_grid[modified_cell.m_pos_x - 1][modified_cell.m_pos_y - 1], true));
+
+	m_cells_to_check.emplace_back(ModifiedCell(
+		modified_cell.m_pos_x - 1, modified_cell.m_pos_y - 1,
+		m_current_grid[modified_cell.m_pos_x - 1][modified_cell.m_pos_y - 1], true));
+
+	m_cells_to_check.emplace_back(ModifiedCell(
+		modified_cell.m_pos_x - 1, modified_cell.m_pos_y - 1,
+		m_current_grid[modified_cell.m_pos_x - 1][modified_cell.m_pos_y - 1], true));
+
+	m_cells_to_check.emplace_back(ModifiedCell(
+		modified_cell.m_pos_x - 1, modified_cell.m_pos_y - 1,
+		m_current_grid[modified_cell.m_pos_x - 1][modified_cell.m_pos_y - 1], true));
+	
+
+	m_modified_cells.push_back(); // ?
 }
 
 

@@ -9,11 +9,12 @@
 struct Timer;
 
 struct ModifiedCell {
-	ModifiedCell(uint16_t pos_x, uint16_t pos_y, bool state)
-		: m_pos_x(pos_x), m_pos_y(pos_y), m_state(state) {}
+	ModifiedCell(uint16_t pos_x, uint16_t pos_y, bool state, bool verified = false)
+		: m_pos_x(pos_x), m_pos_y(pos_y), m_state(state), m_verified(verified) {}
 	uint16_t m_pos_x;
 	uint16_t m_pos_y;
 	bool m_state{ true };
+	bool m_verified{ false };
 };
 
 
@@ -34,10 +35,10 @@ class Grid {
 
 		// Display in console the current state of the grid array.
 		void printArrayGrid(void);
-	
-		// Calculate the next stage of all cells in the array.
-		void nextGeneration(void);
 
+		// Generate the state of the cells each generation
+		void allGeneration(void);
+	
 		// Create a grid with random cells alive
 		void generateRandomNewGrid(uint16_t seed = 0);
 
@@ -45,6 +46,23 @@ class Grid {
 		std::unique_ptr<Timer> m_p_timer{ nullptr };
 
 	private:
+
+
+
+		// Calculate the next stage of all cells in the array.
+		void firstGeneration(void);
+
+		// Calculate the next stage of the last generation changing state cells only
+		void nextGeneration(void);
+
+		// Pause in case of a dead grid or grid with cells alive who are static
+		void pauseWhenDeadGrid(void);
+
+		// Count alive neighbors cells for given cell
+		uint16_t getNbrNeighborCellsAlive(const uint16_t current_cell_x, const uint16_t current_cell_y);
+
+		// Add the neighbors cells of the changing cells to the vector m_modified_cells
+		void addNeighborOfChangingCells(ModifiedCell& modified_cell);
 
 		// Return the state of the North-West cell of the given cell.
 		bool getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
@@ -63,6 +81,7 @@ class Grid {
 		// Return the state of the South-East cell of the given cell.
 		bool getSECellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
 
+
 		static const uint16_t m_CELL_WIDTH{ 10 };
 		static const uint16_t m_CELL_HEIGHT{ 10 };
 		static const uint16_t m_SPACE_BETWEEN_CELLS{ 1 };
@@ -75,6 +94,7 @@ class Grid {
 
 		// Vector holding the cells who gonna change state
 		std::vector<ModifiedCell> m_modified_cells;
+		std::vector<ModifiedCell> m_cells_to_check;
 };
 
 

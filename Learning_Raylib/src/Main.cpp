@@ -29,9 +29,9 @@ int main(void) {
         inter::getUserKeyPressed(game_of_life);
 
 		// ===== Update =====
-        if (!gbl::is_game_paused) {
+        if (!gbl::game_paused) {
             if (isTimerDone(game_of_life.m_p_timer)) {
-                game_of_life.nextGeneration();
+                game_of_life.allGeneration();
                 game_of_life.updateGrid();
                 startTimer(game_of_life.m_p_timer, gbl::TIME_BEFORE_NEXT_GENERATION);
             }
