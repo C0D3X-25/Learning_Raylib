@@ -5,8 +5,8 @@
 namespace gbl {
 
 	// In case of window resize, the window size MUST be a multiple of 11
-	inline const uint16_t WINDOW_WIDTH{ 550 };
-	inline const uint16_t WINDOW_HEIGHT{ 550 };
+	inline const uint16_t WINDOW_WIDTH{ 110 };
+	inline const uint16_t WINDOW_HEIGHT{ 110 };
 	inline const uint16_t TARGET_FPS{ 24 };
 	inline const float TIME_BEFORE_NEXT_GENERATION{ 1.0f }; // Time between generations in seconds
 	inline const uint16_t CHANCE_TO_GENERATE_LIVING_CELL{ 10 }; // in %

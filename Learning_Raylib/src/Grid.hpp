@@ -8,13 +8,13 @@
 
 struct Timer;
 
-struct ModifiedCell {
-	ModifiedCell(uint16_t pos_x, uint16_t pos_y, bool state, bool verified = false)
-		: m_pos_x(pos_x), m_pos_y(pos_y), m_state(state), m_verified(verified) {}
-	uint16_t m_pos_x;
-	uint16_t m_pos_y;
+struct CellToCheck {
+	CellToCheck(uint16_t pos_x, uint16_t pos_y, bool state/*, bool verified = false*/)
+		: m_pos_x(pos_x), m_pos_y(pos_y), m_state(state)/*, m_verified(verified)*/ {}
+	uint16_t m_pos_x{ 0 };
+	uint16_t m_pos_y{ 0 };
 	bool m_state{ true };
-	bool m_verified{ false };
+	//bool m_verified{ false };
 };
 
 
@@ -61,8 +61,8 @@ class Grid {
 		// Count alive neighbors cells for given cell
 		uint16_t getNbrNeighborCellsAlive(const uint16_t current_cell_x, const uint16_t current_cell_y);
 
-		// Add the neighbors cells of the changing cells to the vector m_modified_cells
-		void addNeighborOfChangingCells(ModifiedCell& modified_cell);
+		// Add the neighbors cells of the changing cells to the vector m_cells_to_check
+		void addNeighborOfChangingCells(void);
 
 		// Return the state of the North-West cell of the given cell.
 		bool getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
@@ -93,8 +93,7 @@ class Grid {
 		bool m_current_grid[m_GRID_WIDTH][m_GRID_HEIGHT]{ };
 
 		// Vector holding the cells who gonna change state
-		std::vector<ModifiedCell> m_modified_cells;
-		std::vector<ModifiedCell> m_cells_to_check;
+		std::vector<CellToCheck> m_cells_to_check;
 };
 
 
