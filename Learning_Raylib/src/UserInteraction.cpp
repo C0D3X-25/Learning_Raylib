@@ -24,17 +24,17 @@ namespace inter {
 
 	void userPauseGame(Grid& game_of_life) {
 
-		gbl::game_paused = !gbl::game_paused;
+		global::game_paused = !global::game_paused;
 
 #if DEBUG
-		std::cout << "Game is " << (gbl::game_paused ? "pause\n" : "resume\n");
+		std::cout << "Game is " << (global::game_paused ? "pause\n" : "resume\n");
 #endif // DEBUG
 	}
 
 
 	void userResetGrid(Grid& game_of_life) {
 
-		if (gbl::game_paused) {
+		if (global::game_paused) {
 			game_of_life.clearGrid();
 		}
 	}
@@ -42,7 +42,7 @@ namespace inter {
 
 	void userGenerateRandomGrid(Grid& game_of_life) {
 
-		if (gbl::game_paused) {
+		if (global::game_paused) {
 			game_of_life.generateRandomNewGrid();
 		}
 	}

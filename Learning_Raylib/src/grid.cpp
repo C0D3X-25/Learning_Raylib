@@ -60,7 +60,7 @@ void Grid::clearGrid(void) {
 		}
 	}
 
-	gbl::nbr_generation = 0;
+	global::nbr_generation = 0;
 }
 
 
@@ -83,7 +83,7 @@ void Grid::userChangeCellState(void) {
 }
 
 
-void Grid::printArrayGrid(void) {
+void Grid::printArrayGrid(void) const {
 
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
@@ -96,7 +96,7 @@ void Grid::printArrayGrid(void) {
 
 void Grid::allGeneration(void) {
 
-	if (gbl::nbr_generation > 0) {
+	if (global::nbr_generation > 0) {
 		std::cout << "Next generation\n";
 		nextGeneration();
 	}
@@ -106,7 +106,26 @@ void Grid::allGeneration(void) {
 	}
 
 	pauseWhenDeadGrid();
-	gbl::nbr_generation++;
+	global::nbr_generation++;
+}
+
+
+void Grid::displayDuplicateCells(void) const {
+
+	for (const CellToCheck& cell : m_cells_to_check) {
+		uint16_t count{ 0 };
+
+		for (uint16_t i{ 0 }; i < m_cells_to_check.size(); i++) {
+			if (cell.m_pos_x == m_cells_to_check[i].m_pos_x 
+				&& cell.m_pos_y == m_cells_to_check[i].m_pos_y) {
+				count++;
+			}
+		}
+
+		if (count > 1) {
+			std::cout << "cell:" << " [" << cell.m_pos_x << " x " << cell.m_pos_y << "] duplicate: " << count << " time\n";
+		}
+	}
 }
 
 
@@ -159,6 +178,11 @@ void Grid::firstGeneration(void) {
 void Grid::nextGeneration(void) {
 
 	addNeighborOfChangingCells();
+
+#if DEBUG
+	displayDuplicateCells();
+#endif // DEBUG
+
 
 	std::vector<CellToCheck> temp_modified_cells;
 	temp_modified_cells.reserve(25);
@@ -219,7 +243,7 @@ void Grid::nextGeneration(void) {
 
 void Grid::pauseWhenDeadGrid(void) {
 	if (m_cells_to_check.empty()) {
-		gbl::game_paused = true;
+		global::game_paused = true;
 	}
 }
 
@@ -239,64 +263,186 @@ uint16_t Grid::getNbrNeighborCellsAlive(const uint16_t current_cell_x, const uin
 
 void Grid::addNeighborOfChangingCells(void) {
 
-	std::vector<CellToCheck> neighbor_of_modified_cells;
-	neighbor_of_modified_cells.reserve(25);
+	// Move the cells who changed this generation to a temp vector
+	std::vector<CellToCheck> list_cells_this_generation{ std::move(m_cells_to_check) };
 
-	std::cout << "Size of cells_to_check vector: " << m_cells_to_check.size() << '\n';
+#if DEBUG
+	std::cout << "Nbr of cells this generation: " << list_cells_this_generation.size() << '\n';
+#endif // DEBUG
 
-	for (CellToCheck& checking_cell : m_cells_to_check) {
+	for (CellToCheck& cell_this_generation : list_cells_this_generation) {
 	
-		if (checking_cell.m_pos_x == 0
-			|| checking_cell.m_pos_y == 0
-			|| checking_cell.m_pos_x == m_GRID_WIDTH - 1
-			|| checking_cell.m_pos_y == m_GRID_HEIGHT - 1
-			/*|| checking_cell.m_verified == true*/) {
+		// Ignore the border
+		if (cell_this_generation.m_pos_x == 0
+			|| cell_this_generation.m_pos_y == 0
+			|| cell_this_generation.m_pos_x == m_GRID_WIDTH - 1
+			|| cell_this_generation.m_pos_y == m_GRID_HEIGHT - 1) {
 
 			continue;
 		}
-		//checking_cell.m_verified = true;
 
+		if (!m_cells_to_check.empty()) {
+			continue;
+		}
 
+		// Empty dynamic array OR the cell is alone
+		addNWCell(cell_this_generation);
+		addNCell(cell_this_generation);
+		addNECell(cell_this_generation);
+		addWCell(cell_this_generation);
+		addSelfCell(cell_this_generation);
+		addECell(cell_this_generation);
+		addSWCell(cell_this_generation);
+		addSCell(cell_this_generation);
+		addSECell(cell_this_generation);
 
-		// NW
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x - 1, checking_cell.m_pos_y - 1,
-			m_current_grid[checking_cell.m_pos_x - 1][checking_cell.m_pos_y - 1]));
-		// N
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x, checking_cell.m_pos_y - 1,
-			m_current_grid[checking_cell.m_pos_x][checking_cell.m_pos_y - 1]));
-		// NE
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x, checking_cell.m_pos_y + 1,
-			m_current_grid[checking_cell.m_pos_x][checking_cell.m_pos_y + 1]));
-		// W
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x - 1, checking_cell.m_pos_y,
-			m_current_grid[checking_cell.m_pos_x - 1][checking_cell.m_pos_y]));
-		// E
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x + 1, checking_cell.m_pos_y,
-			m_current_grid[checking_cell.m_pos_x + 1][checking_cell.m_pos_y]));
-		// SW
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x - 1, checking_cell.m_pos_y + 1,
-			m_current_grid[checking_cell.m_pos_x - 1][checking_cell.m_pos_y + 1]));
-		// S
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x, checking_cell.m_pos_y + 1,
-			m_current_grid[checking_cell.m_pos_x][checking_cell.m_pos_y + 1]));
-		// SE
-		neighbor_of_modified_cells.emplace_back(CellToCheck(
-			checking_cell.m_pos_x + 1, checking_cell.m_pos_y + 1,
-			m_current_grid[checking_cell.m_pos_x + 1][checking_cell.m_pos_y + 1]));
-
-		std::cout << "Size of the neighbor vector: " << neighbor_of_modified_cells.size()
-			<< " For cell [" << checking_cell.m_pos_x << " x " << checking_cell.m_pos_y << "]"
-			<< '\n';
+		// TODO: Add the others check here
 	}	
+}
+
+
+void Grid::checkSameColumnLastElement(const CellToCheck& current_cell) {
+
+	// At least 1 element in the dynamic array
+	if (m_cells_to_check.size() < 1) {
+		return;
+	}
+
+	if (m_cells_to_check.at(m_cells_to_check.size()).m_pos_x == current_cell.m_pos_x 
+		&& m_cells_to_check.at(m_cells_to_check.size()).m_pos_y == current_cell.m_pos_y - 1) {
+
+		addSWCell(current_cell);
+		addSCell(current_cell);
+		addSECell(current_cell);
+	}
+}
+
+
+void Grid::checkSameColumnBeforeLastElement(const CellToCheck& current_cell) {
+
+	// At least 2 elements in the dynamic array
+	if (m_cells_to_check.size() < 2) {
+		return;
+	}
+
+	if (m_cells_to_check.at(m_cells_to_check.size() - 1).m_pos_x == current_cell.m_pos_x
+		&& m_cells_to_check.at(m_cells_to_check.size() - 1).m_pos_y == current_cell.m_pos_y - 2) {
+
+		addWCell(current_cell);
+		addSelfCell(current_cell);
+		addECell(current_cell);
+		addSWCell(current_cell);
+		addSCell(current_cell);
+		addSECell(current_cell);
+	}
+}
+
+
+void Grid::checkLastColumn(const CellToCheck& current_cell) {
 	
-	m_cells_to_check.insert(m_cells_to_check.end(), neighbor_of_modified_cells.begin(), neighbor_of_modified_cells.end());
+	// At least 2 elements in the dynamic array
+	if (m_cells_to_check.size() < 2) {
+		return;
+	}
+
+	// Calculate the min index for the reverse loop
+	const uint16_t RANGE_MIN = global::TOTAL_CELLS_Y_AXIS > m_cells_to_check.size()
+		? global::TOTAL_CELLS_Y_AXIS + 3
+		: 0; 
+
+	// Reverse loop
+	for (uint16_t i{ (uint16_t)m_cells_to_check.size() }; i > RANGE_MIN; i--) {
+
+		// -1X, +2Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 1
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y + 2) {
+
+
+			continue;
+		}
+		// -1X, +1Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 1
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y + 1) {
+
+
+			continue;
+		}
+		// -1X, +0Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 1
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y) {
+
+
+			continue;
+		}
+		// -1X, -1Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 1
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y - 1) {
+
+
+			continue;
+		}
+		// -1X, -2Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 1
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y - 2) {
+
+
+			continue;
+		}
+	}
+}
+
+
+void Grid::checkBeforeLastColumn(const CellToCheck& current_cell) {
+
+	// At least 2 elements in the dynamic array
+	if (m_cells_to_check.size() < 2) {
+		return;
+	}
+
+	// Calculate the min index for the reverse loop
+	const uint16_t MIN_RANGE_INDEX = global::TOTAL_CELLS_Y_AXIS > m_cells_to_check.size()
+		? (global::TOTAL_CELLS_Y_AXIS * 2) + 3
+		: 0;
+
+	// Reverse loop
+	for (uint16_t i{ (uint16_t)m_cells_to_check.size() }; i > MIN_RANGE_INDEX; i--) {
+
+		// -2X, +2Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 2
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y + 2) {
+
+
+			continue;
+		}
+		// -2X, +1Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 2
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y + 1) {
+
+
+			continue;
+		}
+		// -2X, +0Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 2
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y) {
+
+
+			continue;
+		}
+		// -2X, -1Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 2
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y - 1) {
+
+
+			continue;
+		}
+		// -2X, -2Y from current_cell
+		if (m_cells_to_check[i].m_pos_x == current_cell.m_pos_x - 2
+			&& m_cells_to_check[i].m_pos_y == current_cell.m_pos_y - 2) {
+
+
+			continue;
+		}
+	}
 }
 
 
@@ -315,7 +461,7 @@ void Grid::generateRandomNewGrid(uint16_t seed) {
 	for (uint16_t width{ 0 }; width < m_GRID_WIDTH; width++) {
 		for (uint16_t height{ 0 }; height < m_GRID_HEIGHT; height++) {
 
-			if (distrib(gen) <= gbl::CHANCE_TO_GENERATE_LIVING_CELL) {
+			if (distrib(gen) <= global::CHANCE_TO_GENERATE_LIVING_CELL) {
 				m_current_grid[width][height] = 1;
 			}
 		}
@@ -323,7 +469,7 @@ void Grid::generateRandomNewGrid(uint16_t seed) {
 }
 
 
-bool Grid::getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0 
 		|| current_cell_y == 0
@@ -336,7 +482,7 @@ bool Grid::getNWCellState(const uint16_t current_cell_x, const uint16_t current_
 }
 
 
-bool Grid::getNCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getNCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -349,7 +495,7 @@ bool Grid::getNCellState(const uint16_t current_cell_x, const uint16_t current_c
 }
 
 
-bool Grid::getNECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getNECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -362,7 +508,7 @@ bool Grid::getNECellState(const uint16_t current_cell_x, const uint16_t current_
 }
 
 
-bool Grid::getWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -375,7 +521,7 @@ bool Grid::getWCellState(const uint16_t current_cell_x, const uint16_t current_c
 }
 
 
-bool Grid::getECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -388,7 +534,7 @@ bool Grid::getECellState(const uint16_t current_cell_x, const uint16_t current_c
 }
 
 
-bool Grid::getSWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getSWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -401,7 +547,7 @@ bool Grid::getSWCellState(const uint16_t current_cell_x, const uint16_t current_
 }
 
 
-bool Grid::getSCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getSCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -414,7 +560,7 @@ bool Grid::getSCellState(const uint16_t current_cell_x, const uint16_t current_c
 }
 
 
-bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) {
+bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const {
 
 	if (current_cell_x == 0
 		|| current_cell_y == 0
@@ -425,4 +571,69 @@ bool Grid::getSECellState(const uint16_t current_cell_x, const uint16_t current_
 	}
 	return m_current_grid[current_cell_x + 1][current_cell_y + 1];
 }
+
+
+void Grid::addNWCell(const CellToCheck& current_cell) {
+	// NW
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x - 1, current_cell.m_pos_y - 1,
+		m_current_grid[current_cell.m_pos_x - 1][current_cell.m_pos_y - 1]));
+}
+
+void Grid::addNCell(const CellToCheck& current_cell) {
+	// N
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x, current_cell.m_pos_y - 1,
+		m_current_grid[current_cell.m_pos_x][current_cell.m_pos_y - 1]));
+}
+
+void Grid::addNECell(const CellToCheck& current_cell) {
+	// NE
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x, current_cell.m_pos_y + 1,
+		m_current_grid[current_cell.m_pos_x][current_cell.m_pos_y + 1]));
+}
+
+void Grid::addWCell(const CellToCheck& current_cell) {
+	// W
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x - 1, current_cell.m_pos_y,
+		m_current_grid[current_cell.m_pos_x - 1][current_cell.m_pos_y]));
+}
+
+void Grid::addSelfCell(const CellToCheck& current_cell) {
+	// W
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x, current_cell.m_pos_y,
+		m_current_grid[current_cell.m_pos_x][current_cell.m_pos_y]));
+}
+
+void Grid::addECell(const CellToCheck& current_cell) {
+	// E
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x + 1, current_cell.m_pos_y,
+		m_current_grid[current_cell.m_pos_x + 1][current_cell.m_pos_y]));
+}
+
+void Grid::addSWCell(const CellToCheck& current_cell) {
+	// SW
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x - 1, current_cell.m_pos_y + 1,
+		m_current_grid[current_cell.m_pos_x - 1][current_cell.m_pos_y + 1]));
+}
+
+void Grid::addSCell(const CellToCheck& current_cell) {
+	// S
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x, current_cell.m_pos_y + 1,
+		m_current_grid[current_cell.m_pos_x][current_cell.m_pos_y + 1]));
+}
+
+void Grid::addSECell(const CellToCheck& current_cell) {
+	// SE
+	m_cells_to_check.emplace_back(CellToCheck(
+		current_cell.m_pos_x + 1, current_cell.m_pos_y + 1,
+		m_current_grid[current_cell.m_pos_x + 1][current_cell.m_pos_y + 1]));
+}
+
 

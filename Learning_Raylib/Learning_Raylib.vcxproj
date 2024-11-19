@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Algorithm.cpp" />
     <ClCompile Include="src\Grid.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Timer.cpp" />

@@ -18,8 +18,8 @@ int main(void) {
     game_of_life.printArrayGrid();
 #endif // DEBUG
 
-    InitWindow(gbl::WINDOW_WIDTH, gbl::WINDOW_HEIGHT, "Game of Life");
-    SetTargetFPS(gbl::TARGET_FPS);
+    InitWindow(global::WINDOW_WIDTH, global::WINDOW_HEIGHT, "Game of Life");
+    SetTargetFPS(global::TARGET_FPS);
 
 
     // ===== Main game loop =====
@@ -29,11 +29,11 @@ int main(void) {
         inter::getUserKeyPressed(game_of_life);
 
 		// ===== Update =====
-        if (!gbl::game_paused) {
+        if (!global::game_paused) {
             if (isTimerDone(game_of_life.m_p_timer)) {
                 game_of_life.allGeneration();
                 game_of_life.updateGrid();
-                startTimer(game_of_life.m_p_timer, gbl::TIME_BEFORE_NEXT_GENERATION);
+                startTimer(game_of_life.m_p_timer, global::TIME_BEFORE_NEXT_GENERATION);
             }
         }
         else {

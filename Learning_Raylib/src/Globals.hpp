@@ -2,7 +2,7 @@
 
 #include "Typedef.hpp"
 
-namespace gbl {
+namespace global {
 
 	// In case of window resize, the window size MUST be a multiple of 11
 	inline const uint16_t WINDOW_WIDTH{ 110 };
@@ -12,13 +12,13 @@ namespace gbl {
 	inline const uint16_t CHANCE_TO_GENERATE_LIVING_CELL{ 10 }; // in %
 
 	inline bool game_paused{ true };
-	inline long long int nbr_generation{ 0 };
+	inline size_t nbr_generation{ 0 };
 
 	constexpr uint16_t TOTAL_CELLS_X_AXIS{ WINDOW_WIDTH / 11 };
 	constexpr uint16_t TOTAL_CELLS_Y_AXIS{ WINDOW_HEIGHT / 11 };
 	constexpr uint16_t TOTAL_CELLS{ TOTAL_CELLS_X_AXIS * TOTAL_CELLS_Y_AXIS };
 
-} // namespace gbl
+} // namespace global
 
 // BUG:
 // - 

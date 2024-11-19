@@ -4,7 +4,7 @@
 #include "Globals.hpp"
 
 #include <vector>
-#include <memory>
+#include <memory> // for ptr
 
 struct Timer;
 
@@ -14,7 +14,6 @@ struct CellToCheck {
 	uint16_t m_pos_x{ 0 };
 	uint16_t m_pos_y{ 0 };
 	bool m_state{ true };
-	//bool m_verified{ false };
 };
 
 
@@ -34,7 +33,7 @@ class Grid {
 		void userChangeCellState(void);
 
 		// Display in console the current state of the grid array.
-		void printArrayGrid(void);
+		void printArrayGrid(void) const;
 
 		// Generate the state of the cells each generation
 		void allGeneration(void);
@@ -47,7 +46,8 @@ class Grid {
 
 	private:
 
-
+		// DEBUG method
+		void displayDuplicateCells(void) const;
 
 		// Calculate the next stage of all cells in the array.
 		void firstGeneration(void);
@@ -64,30 +64,40 @@ class Grid {
 		// Add the neighbors cells of the changing cells to the vector m_cells_to_check
 		void addNeighborOfChangingCells(void);
 
-		// Return the state of the North-West cell of the given cell.
-		bool getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the North cell of the given cell.
-		bool getNCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the North-East cell of the given cell.
-		bool getNECellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the West cell of the given cell.
-		bool getWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the East cell of the given cell.
-		bool getECellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the South-West cell of the given cell.
-		bool getSWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the South cell of the given cell.
-		bool getSCellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
-		// Return the state of the South-East cell of the given cell.
-		bool getSECellState(const uint16_t current_cell_x, const uint16_t current_cell_y);
+		// Algorithm - add to dynamic array
+		void checkSameColumnLastElement(const CellToCheck& current_cell);
+		void checkSameColumnBeforeLastElement(const CellToCheck& current_cell);
+		void checkLastColumn(const CellToCheck& current_cell);
+		void checkBeforeLastColumn(const CellToCheck& current_cell);
+		 
+
+		bool getNWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getNCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getNECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getSWCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getSCellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+		bool getSECellState(const uint16_t current_cell_x, const uint16_t current_cell_y) const;
+
+
+		void addNWCell(const CellToCheck& current_cell);
+		void addNCell(const CellToCheck& current_cell);
+		void addNECell(const CellToCheck& current_cell);
+		void addWCell(const CellToCheck& current_cell);
+		void addSelfCell(const CellToCheck& current_cell);
+		void addECell(const CellToCheck& current_cell);
+		void addSWCell(const CellToCheck& current_cell);
+		void addSCell(const CellToCheck& current_cell);
+		void addSECell(const CellToCheck& current_cell);
 
 
 		static const uint16_t m_CELL_WIDTH{ 10 };
 		static const uint16_t m_CELL_HEIGHT{ 10 };
 		static const uint16_t m_SPACE_BETWEEN_CELLS{ 1 };
 
-		static const uint16_t m_GRID_WIDTH{ gbl::WINDOW_WIDTH / (m_CELL_WIDTH + m_SPACE_BETWEEN_CELLS) };
-		static const uint16_t m_GRID_HEIGHT{ gbl::WINDOW_HEIGHT/ (m_CELL_HEIGHT + m_SPACE_BETWEEN_CELLS) };
+		static const uint16_t m_GRID_WIDTH{ global::WINDOW_WIDTH / (m_CELL_WIDTH + m_SPACE_BETWEEN_CELLS) };
+		static const uint16_t m_GRID_HEIGHT{ global::WINDOW_HEIGHT/ (m_CELL_HEIGHT + m_SPACE_BETWEEN_CELLS) };
 	
 		// Grid holding cells (all dead by default)
 		bool m_current_grid[m_GRID_WIDTH][m_GRID_HEIGHT]{ };
